@@ -25,17 +25,26 @@ const posts = [{
     id: '1',
     title: 'A Short Story',
     body: 'This is a Short Story',
-    published: true
+    published: true,
+    author: '1'
 }, {
     id: '2',
     title: 'Halleluja',
     body: 'HAAALLEEEx',
-    published: false
+    published: false,
+    author: '1'
 }, {
     id: '3',
     title: 'The Titlex',
     body: 'xyz',
-    published: true
+    published: true,
+    author: '2'
+}, {
+    id: '4',
+    title: 'This is it!',
+    body: 'Yes, it is',
+    published: false,
+    author: '3'
 }];
 //Type definitions (Schema)
     const typeDefs = `
@@ -57,6 +66,7 @@ const posts = [{
         title: String!
         body: String!
         published: Boolean!
+        author: User!
        
         }
     `;
@@ -98,6 +108,13 @@ const posts = [{
                 return posts.filter((post) => {
                     return post.title.toLowerCase().includes(args.query.toLowerCase()) || post.body.toLowerCase().includes(args.query.toLowerCase())
                 });
+            }
+        },
+        Post:{
+            author(parent, args, ctx, info) {
+                return users.find((user) => {
+                    return user.id === parent.author
+                })
             }
         }
     };
