@@ -91,9 +91,28 @@ const comments = [{
         }
         
         type Mutation {
-           createUser(name: String!, email: String!, age: Int): User!
-           createPost(title: String!, body: String!, published: Boolean!, author: ID! ): Post!
-           createComment(text: String, author: ID!, post: ID!): Comment!
+           createUser(data: CreateUserInput): User!
+           createPost(data: CreatePostInput): Post!
+           createComment(data: CreateCommentInput): Comment!
+        }
+        
+        input CreateUserInput {
+            name: String!,
+            email: String!,
+            age: Int
+        }
+        
+        input CreatePostInput {
+            title: String!
+            body: String!,
+            published: Boolean!,
+            author: ID!
+        }
+        
+        input CreateCommentInput {
+            text: String!,
+            author: ID!,
+            post: ID!
         }
         
         type User {
@@ -165,14 +184,14 @@ const comments = [{
         Mutation: {
             createUser(parent, args, ctx, info) {
                 const emailTaken = users.some((user) => {
-                    return user.email === args.email
+                    return user.email === args.data.email
                 });
                 if(emailTaken) {
                     throw new Error('Email taken.')
                 }
                 const user = {
                     id: uuidv4(),
-                    ...args
+                    ...args.data
                 };
 
                 users.push(user);
@@ -180,7 +199,7 @@ const comments = [{
             },
             createPost(parent, args, ctx, info) {
                 const authorExists = users.some((user) => {
-                    return user.id === args.author
+                    return user.id === args.data.author
                 });
 
                 if(!authorExists) {
@@ -188,7 +207,7 @@ const comments = [{
                 }
                 const post = {
                     id: uuidv4(),
-                    ...args
+                    ...args.data
                 };
 
                 posts.push(post);
@@ -196,11 +215,11 @@ const comments = [{
             },
             createComment(parent, args, ctx, info) {
                 const authorExists = users.some((user) => {
-                    return user.id === args.author
+                    return user.id === args.data.author
                 });
 
                 const postExists = posts.some((post) => {
-                    return post.id === args.post && post.published === true
+                    return post.id === args.data.post && post.published === true
                 });
 
                 if(!authorExists || !postExists) {
@@ -210,7 +229,7 @@ const comments = [{
 
                 const comment = {
                     id: uuidv4(),
-                    ...args
+                    ...args.data
                 };
 
                 comments.push(comment);
