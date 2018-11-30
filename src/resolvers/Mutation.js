@@ -85,12 +85,17 @@ const Mutation = {
 
         db.posts.push(post);
         if(post.published === true) {
-            pubsub.publish("post", {post});
+            pubsub.publish("post", {
+                post: {
+                    mutation: "CREATED",
+                    data: post
+                }
+            });
         }
 
         return post
     },
-    deletePost(parent, args, {db}, info) {
+    deletePost(parent, args, {db, pubsub}, info) {
         const postIndex = db.posts.findIndex((post) => {
             return post.id === args.id
         });
@@ -105,12 +110,22 @@ const Mutation = {
             return comment.post !== args.id;
         });
 
+        if(deleted[0].published === true) {
+            pubsub.publish("post",{
+                post: {
+                    mutation: "DELETED",
+                    data: deleted[0]
+                }
+            })
+        }
+
         return deleted[0]
     },
-    updatePost(parent, args, {db}, info) {
+    updatePost(parent, args, {db, pubsub}, info) {
         const post = db.posts.find((post) => {
             return post.id === args.id
         });
+        const originalPost = {...post};
 
         if(!post) {
             throw new Error('Post not found')
@@ -126,6 +141,29 @@ const Mutation = {
 
         if(typeof args.data.published === 'boolean') {
             post.published = args.data.published
+
+            if(originalPost.published && !post.published){
+                pubsub.publish("post", {
+                    post: {
+                        mutation: "DELETED",
+                        data: originalPost
+                    }
+                })
+            } else if(!originalPost.published && post.published) {
+                pubsub.publish("post", {
+                    post: {
+                        mutation: "CREATED",
+                        data: post
+                    }
+                })
+            }
+        } else if(post.published) {
+                pubsub.publish("post", {
+                    post: {
+                        mutation: "UPDATED",
+                        data: post
+                    }
+                })
         }
 
         return post
