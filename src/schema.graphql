@@ -43,7 +43,7 @@ type User {
     comments: [Comment!]!
 }
 type Post {
-    id : ID!
+    id: ID!
     title: String!
     body: String!
     published: Boolean!
